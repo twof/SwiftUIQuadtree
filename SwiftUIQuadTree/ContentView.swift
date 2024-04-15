@@ -12,7 +12,7 @@ struct QuadTreeElement: Identifiable, Equatable, Codable {
   let point: CGPoint
 }
 
-struct QuadTree {
+@Observable class QuadTree {
   let rectangle: CGRect
   var children: [QuadTree]
   let minSize: CGSize
@@ -31,7 +31,7 @@ struct QuadTree {
     }
   }
   
-  private mutating func insert(element: QuadTreeElement) {
+  private func insert(element: QuadTreeElement) {
     guard rectangle.contains(element.point) else {
       return
     }
@@ -45,23 +45,31 @@ struct QuadTree {
     values.append(element)
   }
   
-  mutating func insert(_ val: CGPoint) -> QuadTreeElement.ID? {
+  func insert(_ val: CGPoint) -> QuadTreeElement? {
+    guard let element = self.insert(val, id: currentIndex) else {
+      return nil
+    }
+    currentIndex += 1
+    return element
+  }
+  
+  private func insert(_ val: CGPoint, id: QuadTreeElement.ID) -> QuadTreeElement? {
     guard rectangle.contains(val) else { return nil }
     
     // If there are already children, insert value into them
     if !children.isEmpty {
       return (0..<children.count).reduce(nil) { partialResult, index in
-        partialResult ?? children[index].insert(val)
+        partialResult ?? children[index].insert(val, id: id)
       }
     }
     
     // Add new value if rectangle is already below min size or if there are no values
     let isSmallerThanMin = rectangle.size.height < minSize.height || rectangle.size.width < minSize.width
     if values.isEmpty || (isSmallerThanMin)  {
-      let newIndex = currentIndex
-      self.currentIndex += 1
-      values.append(QuadTreeElement(id: newIndex, point: val))
-      return newIndex
+      let newElement = QuadTreeElement(id: id, point: val)
+      values.append(newElement)
+      
+      return newElement
     }
     
     // Insert value into child, but first section rectangle if needed
@@ -100,18 +108,41 @@ struct QuadTree {
     self.values = []
     
     return (0..<children.count).reduce(nil) { partialResult, index in
-      partialResult ?? children[index].insert(val)
+      partialResult ?? children[index].insert(val, id: id)
     }
   }
   
   func getVals() -> [QuadTreeElement] {
     return values + children.flatMap { $0.getVals() }
   }
-}
-
-extension CGSize {
-  static func /(lhs: CGSize, rhs: CGFloat) -> CGSize {
-    CGSize(width: lhs.width / rhs, height: lhs.height / rhs)
+  
+  func remove(element: QuadTreeElement) {
+    guard rectangle.contains(element.point) else {
+      return
+    }
+    
+    if !values.isEmpty {
+      values.removeAll { $0.id == element.id }
+    } else {
+      for index in (0..<children.count) {
+        children[index].remove(element: element)
+      }
+    }
+    
+    let vals = self.getVals()
+    
+    if vals.count <= 1 {
+      self.values = vals
+      self.children = []
+    }
+  }
+  
+  func move(element: QuadTreeElement, newLocation: CGPoint) {
+    // Remove
+    self.remove(element: element)
+    
+    // Insert at new location
+    _ = self.insert(newLocation, id: element.id)
   }
 }
 
@@ -120,17 +151,17 @@ struct QuadTreeView: View {
   
   var body: some View {
     ZStack {
-      if !tree.children.isEmpty {
-        // Vertical line
-        Rectangle()
-          .frame(width: 2)
-          .foregroundStyle(.black)
-        
-        // Horizontal line
-        Rectangle()
-          .frame(height: 2)
-          .foregroundStyle(.black)
-      }
+//      if !tree.children.isEmpty {
+//        // Vertical line
+//        Rectangle()
+//          .frame(width: 2)
+//          .foregroundStyle(.black)
+//        
+//        // Horizontal line
+//        Rectangle()
+//          .frame(height: 2)
+//          .foregroundStyle(.black)
+//      }
       
       // Draw children
       ForEach(tree.children, id: \.rectangle) { child in
@@ -165,55 +196,27 @@ struct QuadTreeView: View {
   }
 }
 
-extension CGRect: Hashable {
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(self.origin.x)
-    hasher.combine(self.origin.y)
-    hasher.combine(self.height)
-    hasher.combine(self.width)
-  }
-}
-
-extension CGPoint: Hashable {
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(self.x)
-    hasher.combine(self.y)
-  }
-}
-
-extension CGPoint: Identifiable {
-  public var id: String { "x: \(x), y: \(y)" }
-}
-
-public extension Color {
-  static func random(randomOpacity: Bool = false) -> Color {
-    Color(
-      red: .random(in: 0...1),
-      green: .random(in: 0...1),
-      blue: .random(in: 0...1),
-      opacity: randomOpacity ? .random(in: 0...1) : 1
-    )
-  }
-}
-
 struct ContentView: View {
   @State var tree = QuadTree(
     rectangle: CGRect(origin: .zero, size: .init(width: 500, height: 500)),
-    minSize: .init(width: 20, height: 20)
+    minSize: .init(width: 20, height: 20),
+    values: [
+      .init(x: 40, y: 40),
+      .init(x: 300, y: 300),
+      .init(x: 200, y: 200)
+    ]
   )
   
   var body: some View {
-    QuadTreeView(tree: QuadTree(
-      rectangle: CGRect(origin: .zero, size: .init(width: 500, height: 500)),
-      minSize: .init(width: 20, height: 20),
-      values: [
-        .init(x: 40, y: 40),
-        .init(x: 300, y: 300),
-        .init(x: 200, y: 200)
-      ]
-    ))
+    QuadTreeView(tree: tree)
     .background(.gray)
     .frame(width: 600, height: 600)
+    .task {
+      withAnimation(.linear(duration: 10)) {
+        tree.move(element: tree.getVals()[0], newLocation: .init(x: 20, y: 400))
+//        tree.remove(element: tree.getVals()[0])
+      }
+    }
   }
 }
 

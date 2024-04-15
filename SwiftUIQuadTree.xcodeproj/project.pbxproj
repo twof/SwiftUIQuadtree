@@ -12,6 +12,7 @@
 		24A1FF1F2BCD111300583C55 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24A1FF1E2BCD111300583C55 /* Assets.xcassets */; };
 		24A1FF232BCD111300583C55 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24A1FF222BCD111300583C55 /* Preview Assets.xcassets */; };
 		24A1FF2D2BCD111400583C55 /* SwiftUIQuadTreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1FF2C2BCD111400583C55 /* SwiftUIQuadTreeTests.swift */; };
+		24A1FF462BCDE36600583C55 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1FF452BCDE36600583C55 /* Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,6 +34,7 @@
 		24A1FF222BCD111300583C55 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		24A1FF282BCD111400583C55 /* SwiftUIQuadTreeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftUIQuadTreeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		24A1FF2C2BCD111400583C55 /* SwiftUIQuadTreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIQuadTreeTests.swift; sourceTree = "<group>"; };
+		24A1FF452BCDE36600583C55 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +81,7 @@
 				24A1FF1E2BCD111300583C55 /* Assets.xcassets */,
 				24A1FF202BCD111300583C55 /* SwiftUIQuadTree.entitlements */,
 				24A1FF212BCD111300583C55 /* Preview Content */,
+				24A1FF452BCDE36600583C55 /* Extensions.swift */,
 			);
 			path = SwiftUIQuadTree;
 			sourceTree = "<group>";
@@ -200,6 +203,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				24A1FF1D2BCD111200583C55 /* ContentView.swift in Sources */,
+				24A1FF462BCDE36600583C55 /* Extensions.swift in Sources */,
 				24A1FF1B2BCD111200583C55 /* SwiftUIQuadTreeApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
