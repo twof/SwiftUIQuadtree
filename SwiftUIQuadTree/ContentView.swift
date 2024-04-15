@@ -7,11 +7,18 @@
 
 import SwiftUI
 
+struct QuadTreeElement: Identifiable, Equatable, Codable {
+  let id: Int
+  let point: CGPoint
+}
+
 struct QuadTree {
   let rectangle: CGRect
   var children: [QuadTree]
   let minSize: CGSize
-  var values: [CGPoint]
+  var values: [QuadTreeElement]
+  
+  private var currentIndex = 0
   
   init(rectangle: CGRect, minSize: CGSize, values: [CGPoint] = []) {
     self.rectangle = rectangle
@@ -20,26 +27,41 @@ struct QuadTree {
     self.values = []
     
     for value in values {
-      self.insert(value)
+      _ = self.insert(value)
     }
   }
   
-  mutating func insert(_ val: CGPoint) {
-    guard rectangle.contains(val) else { return }
+  private mutating func insert(element: QuadTreeElement) {
+    guard rectangle.contains(element.point) else {
+      return
+    }
+    
+    if !children.isEmpty {
+      for index in (0..<children.count) {
+        children[index].insert(element: element)
+      }
+    }
+    
+    values.append(element)
+  }
+  
+  mutating func insert(_ val: CGPoint) -> QuadTreeElement.ID? {
+    guard rectangle.contains(val) else { return nil }
     
     // If there are already children, insert value into them
     if !children.isEmpty {
-      for index in (0..<children.count) {
-        children[index].insert(val)
+      return (0..<children.count).reduce(nil) { partialResult, index in
+        partialResult ?? children[index].insert(val)
       }
-      
-      return
     }
     
     // Add new value if rectangle is already below min size or if there are no values
     let isSmallerThanMin = rectangle.size.height < minSize.height || rectangle.size.width < minSize.width
     if values.isEmpty || (isSmallerThanMin)  {
-      return values.append(val)
+      let newIndex = currentIndex
+      self.currentIndex += 1
+      values.append(QuadTreeElement(id: newIndex, point: val))
+      return newIndex
     }
     
     // Insert value into child, but first section rectangle if needed
@@ -68,20 +90,21 @@ struct QuadTree {
       QuadTree(rectangle: $0, minSize: minSize)
     }
     
-    for index in (0..<children.count) {
-      children[index].insert(val)
-    }
-    
+    // Move all values to children
     for index in (0..<children.count) {
       for value in values {
-        children[index].insert(value)
+        children[index].insert(element: value)
       }
     }
     
     self.values = []
+    
+    return (0..<children.count).reduce(nil) { partialResult, index in
+      partialResult ?? children[index].insert(val)
+    }
   }
   
-  func getVals() -> [CGPoint] {
+  func getVals() -> [QuadTreeElement] {
     return values + children.flatMap { $0.getVals() }
   }
 }
@@ -111,7 +134,6 @@ struct QuadTreeView: View {
       
       // Draw children
       ForEach(tree.children, id: \.rectangle) { child in
-        
         VStack(spacing: 0) {
           HStack(spacing: 0) {
             QuadTreeView(tree: child)
@@ -125,14 +147,14 @@ struct QuadTreeView: View {
       }
       
       // Draw points
-      ForEach(tree.values) { point in
+      ForEach(tree.values) { element in
         VStack(spacing: 0) {
           HStack(spacing: 0) {
             Circle()
               .frame(width: 10, height: 10)
               .foregroundStyle(.red)
-              .padding(.leading, point.x - tree.rectangle.minX)
-              .padding(.top, point.y - tree.rectangle.minY)
+              .padding(.leading, element.point.x - tree.rectangle.minX)
+              .padding(.top, element.point.y - tree.rectangle.minY)
             Spacer(minLength: 0)
           }
           Spacer(minLength: 0)
@@ -186,7 +208,6 @@ struct ContentView: View {
       minSize: .init(width: 20, height: 20),
       values: [
         .init(x: 40, y: 40),
-        .init(x: 300, y: 300),
         .init(x: 300, y: 300),
         .init(x: 200, y: 200)
       ]
