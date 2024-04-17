@@ -4,26 +4,27 @@ struct RegionsView: View, Animatable {
   @State var tree: QuadTree
   
   var body: some View {
-    //    ZStack {
-    //      ForEach(tree.allRects) { child in
-    //        VStack(spacing: 0) {
-    //          HStack(spacing: 0) {
-    //            Rectangle()
-    //              .foregroundStyle(Color.random())
-    //              .padding(.top, child.minY - tree.rectangle.minY)
-    //              .padding(.leading, child.minX - tree.rectangle.minX)
-    //            Spacer(minLength: 0)
-    //          }
-    //          Spacer(minLength: 0)
-    //        }
-    //      }
-    //    }
     tree.stroke(Color.blue, lineWidth: 4)
+  }
+}
+
+//@Observable
+class QuadTreeViewModel {
+  var colorsCache: [CGRect: Color] = [:]
+  
+  func getColor(for rect: CGRect) -> Color {
+    if let color = colorsCache[rect] {
+      return color
+    }
+    let newColor = Color.random()
+    colorsCache[rect] = newColor
+    return newColor
   }
 }
 
 struct QuadTreeView: View {
   @State var tree: QuadTree
+  let vm = QuadTreeViewModel()
   
   var body: some View {
     ZStack {
@@ -33,7 +34,7 @@ struct QuadTreeView: View {
         VStack(spacing: 0) {
           HStack(spacing: 0) {
             Rectangle()
-              .foregroundStyle(Color.random())
+              .foregroundStyle(vm.getColor(for: child))
               .padding(.top, child.minY - tree.rectangle.minY)
               .padding(.leading, child.minX - tree.rectangle.minX)
             Spacer(minLength: 0)
@@ -68,8 +69,7 @@ struct QuadTreeView: View {
     values: [
       .init(x: 40, y: 40),
       .init(x: 200, y: 200),
-      
-        .init(x: 25, y: 400),
+      .init(x: 25, y: 400),
       .init(x: 400, y: 25),
       .init(x: 300, y: 300)
     ]

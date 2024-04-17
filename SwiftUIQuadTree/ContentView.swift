@@ -18,10 +18,6 @@ struct ContentView: View {
     .task {
       tree.animatedMove(element: tree.allVals[0], newLocation: .init(x: 20, y: 400))
       tree.animatedMove(element: tree.allVals[1], newLocation: .init(x: 10, y: 10))
-//      withAnimation(.linear(duration: 2)) {
-//        tree.move(element: tree.allVals[0], newLocation: .init(x: 20, y: 400))
-////        tree.remove(element: tree.allVals[0])
-//      }
     }
   }
 }

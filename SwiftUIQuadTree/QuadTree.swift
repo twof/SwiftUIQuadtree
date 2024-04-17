@@ -166,30 +166,6 @@ extension QuadTree {
     let xStageDiff = xdiff / CGFloat(stages)
     let yStageDiff = ydiff / CGFloat(stages)
     
-//    var lastElement = element
-    
-////    print("stages", stages)
-//    
-////        withAnimation(.linear(duration: 1)) {
-//    for stage in (0...stages) {
-////      print("points", self.allVals.count)
-////      print("rects", self.allRects)
-//      let nextPoint = CGPoint(x: element.point.x + CGFloat(stage) * xStageDiff, y: element.point.y + CGFloat(stage) * yStageDiff)
-////      print("next point", nextPoint)
-//      withAnimation(.linear(duration: 1)) {
-//        self.move(element: lastElement, newLocation: nextPoint)
-//      } completion: {
-//        <#code#>
-//      }
-//      
-//      lastElement = QuadTreeElement(id: element.id, point: nextPoint)
-//      print()
-//      print()
-//      print()
-//      print()
-//    }
-//        }
-    
     animatedMove(
       lastElement: element,
       nextPoint: element.point,
@@ -198,14 +174,6 @@ extension QuadTree {
       xStageDiff: xStageDiff,
       yStageDiff: yStageDiff
     )
-    
-    //    for stage in (0...stages) {
-    //      let nextPoint = CGPoint(x: element.point.x + CGFloat(stage) * xStageDiff, y: element.point.y + CGFloat(stage) * yStageDiff)
-    //      print("next point", nextPoint)
-    //      withAnimation(.linear) {
-    //        self.move(element: element, newLocation: nextPoint)
-    //      }
-    //    }
   }
   
   func animatedMove(lastElement: QuadTreeElement, nextPoint: CGPoint, currentStage: Int, endStage: Int, xStageDiff: CGFloat, yStageDiff: CGFloat) {
@@ -216,8 +184,6 @@ extension QuadTree {
         return
       }
       
-      print()
-      print()
       print()
       print()
       let last = QuadTreeElement(id: lastElement.id, point: nextPoint)
