@@ -1,35 +1,32 @@
-//
-//  SwiftUIQuadTreeTests.swift
-//  SwiftUIQuadTreeTests
-//
-//  Created by fnord on 4/15/24.
-//
-
 import XCTest
+@testable import SwiftUIQuadTree
 
 final class SwiftUIQuadTreeTests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
-
+  func testMove() throws {
+    let tree = QuadTree(rectangle: .init(origin: .zero, size: .init(width: 100, height: 100)), minSize: .init(width: 10, height: 10))
+    
+    _ = tree.insert(.init(x: 90, y: 90))
+    let second = tree.insert(.init(x: 10, y: 10))!
+    XCTAssertEqual(tree.allRects.count, 5)
+    XCTAssertEqual(tree.allVals.count, 2)
+    
+    // Moving across a boundary
+    tree.move(element: second, newLocation: .init(x: 10, y: 90))
+    XCTAssertEqual(tree.allRects.count, 5)
+    XCTAssertEqual(tree.allVals.count, 2)
+  }
+  
+  func testAnimatedMove() throws {
+    let tree = QuadTree(rectangle: .init(origin: .zero, size: .init(width: 100, height: 100)), minSize: .init(width: 10, height: 10))
+    
+    _ = tree.insert(.init(x: 90, y: 90))
+    let second = tree.insert(.init(x: 10, y: 10))!
+    XCTAssertEqual(tree.allRects.count, 5)
+    XCTAssertEqual(tree.allVals.count, 2)
+    
+    // Moving across a boundary
+    tree.animatedMove(element: second, newLocation: .init(x: 10, y: 90))
+    XCTAssertEqual(tree.allRects.count, 5)
+    XCTAssertEqual(tree.allVals.count, 2)
+  }
 }

@@ -10,6 +10,21 @@ extension CGRect: Hashable {
   }
 }
 
+extension CGRect: Identifiable {
+  public var id: String {
+    "x: \(origin.x), y: \(origin.y), height: \(height), width: \(width)"
+  }
+}
+
+extension CGRect {
+  static func centeredOn(_ point: CGPoint, size: CGFloat) -> CGRect {
+    CGRect(
+      origin: CGPoint(x: point.x - (size / 2.0), y: point.y - (size / 2)),
+      size: CGSize(width: size, height: size)
+    )
+  }
+}
+
 extension CGPoint: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.x)
@@ -19,6 +34,12 @@ extension CGPoint: Hashable {
 
 extension CGPoint: Identifiable {
   public var id: String { "x: \(x), y: \(y)" }
+}
+
+extension CGPoint {
+  func distance(to point: CGPoint) -> CGFloat {
+    return sqrt(pow((point.x - x), 2) + pow((point.y - y), 2))
+  }
 }
 
 public extension Color {

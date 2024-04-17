@@ -13,6 +13,8 @@
 		24A1FF232BCD111300583C55 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24A1FF222BCD111300583C55 /* Preview Assets.xcassets */; };
 		24A1FF2D2BCD111400583C55 /* SwiftUIQuadTreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1FF2C2BCD111400583C55 /* SwiftUIQuadTreeTests.swift */; };
 		24A1FF462BCDE36600583C55 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1FF452BCDE36600583C55 /* Extensions.swift */; };
+		24A1FF482BCEE83E00583C55 /* QuadTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1FF472BCEE83E00583C55 /* QuadTree.swift */; };
+		24A1FF4A2BCEE8A200583C55 /* QuadtreeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24A1FF492BCEE8A200583C55 /* QuadtreeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +37,8 @@
 		24A1FF282BCD111400583C55 /* SwiftUIQuadTreeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftUIQuadTreeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		24A1FF2C2BCD111400583C55 /* SwiftUIQuadTreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIQuadTreeTests.swift; sourceTree = "<group>"; };
 		24A1FF452BCDE36600583C55 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		24A1FF472BCEE83E00583C55 /* QuadTree.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadTree.swift; sourceTree = "<group>"; };
+		24A1FF492BCEE8A200583C55 /* QuadtreeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuadtreeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,12 +80,14 @@
 		24A1FF192BCD111200583C55 /* SwiftUIQuadTree */ = {
 			isa = PBXGroup;
 			children = (
+				24A1FF472BCEE83E00583C55 /* QuadTree.swift */,
 				24A1FF1A2BCD111200583C55 /* SwiftUIQuadTreeApp.swift */,
 				24A1FF1C2BCD111200583C55 /* ContentView.swift */,
 				24A1FF1E2BCD111300583C55 /* Assets.xcassets */,
 				24A1FF202BCD111300583C55 /* SwiftUIQuadTree.entitlements */,
 				24A1FF212BCD111300583C55 /* Preview Content */,
 				24A1FF452BCDE36600583C55 /* Extensions.swift */,
+				24A1FF492BCEE8A200583C55 /* QuadtreeView.swift */,
 			);
 			path = SwiftUIQuadTree;
 			sourceTree = "<group>";
@@ -202,8 +208,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				24A1FF482BCEE83E00583C55 /* QuadTree.swift in Sources */,
 				24A1FF1D2BCD111200583C55 /* ContentView.swift in Sources */,
 				24A1FF462BCDE36600583C55 /* Extensions.swift in Sources */,
+				24A1FF4A2BCEE8A200583C55 /* QuadtreeView.swift in Sources */,
 				24A1FF1B2BCD111200583C55 /* SwiftUIQuadTreeApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
