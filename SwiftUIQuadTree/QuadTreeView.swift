@@ -10,10 +10,10 @@ struct RegionsView: View, Animatable {
 
 @Observable
 class QuadTreeViewModel {
-  let tree: QuadTree
-  var actions: [Action] = []
-  var isProcessing = false
-  private var colorsCache: [CGRect: Color] = [:]
+  var tree: QuadTree
+  @ObservationIgnored private var actions: [Action] = []
+  @ObservationIgnored private var isProcessing = false
+  @ObservationIgnored private var colorsCache: [CGRect: Color] = [:]
   
   var rectangle: CGRect {
     tree.rectangle
@@ -95,7 +95,7 @@ class QuadTreeViewModel {
     
     withAnimation(.linear(duration: 0.3)) {
       for action in actionsToProcess {
-        print("Processing:", action)
+//        print("Processing:", action)
         switch action {
         case let .move(element, newLocation):
           tree.move(element: element, newLocation: newLocation)
@@ -125,40 +125,81 @@ extension QuadTreeViewModel {
 }
 
 struct QuadTreeView: View {
-  @State var vm: QuadTreeViewModel
+  var vm: QuadTreeViewModel
   
   var body: some View {
     ZStack {
       // Draw children
-      ForEach(vm.allRects) { child in
-        VStack(spacing: 0) {
-          HStack(spacing: 0) {
-            Rectangle()
-              .foregroundStyle(vm.getColor(for: child))
-              .padding(.top, child.minY - vm.rectangle.minY)
-              .padding(.leading, child.minX - vm.rectangle.minX)
-            Spacer(minLength: 0)
-          }
-          Spacer(minLength: 0)
-        }
-      }
+      GridView(rects: vm.allRects, colorGenerator: vm.getColor)
       
       // Draw points
-      ForEach(vm.allVals) { element in
-        VStack(spacing: 0) {
-          HStack(spacing: 0) {
-            Circle()
-              .frame(width: 10, height: 10)
-              .foregroundStyle(.red)
-              .padding(.leading, element.point.x - vm.rectangle.minX)
-              .padding(.top, element.point.y - vm.rectangle.minY)
-            Spacer(minLength: 0)
-          }
-          Spacer(minLength: 0)
-        }
-      }
+      PositionsView(elements: vm.allVals)
     }
     .frame(width: vm.rectangle.width, height: vm.rectangle.height)
+  }
+}
+
+struct PositionsView: View, Equatable {
+  let elements: [QuadTreeElement]
+  
+  var body: some View {
+    ForEach(elements) { element in
+      PositionView(position: element.point)
+        .id(element.id)
+    }
+  }
+}
+
+struct GridView: View, Equatable {
+  let rects: [CGRect]
+  let colorGenerator: (CGRect) -> Color
+  
+  var body: some View {
+    ForEach(rects) { child in
+      RectangleView(color: colorGenerator(child), rect: child)
+        .id(child.id)
+    }
+  }
+  
+  static func == (lhs: GridView, rhs: GridView) -> Bool {
+    return lhs.rects == rhs.rects
+  }
+}
+
+struct PositionView: View, Equatable {
+  let position: CGPoint
+  
+  var body: some View {
+    VStack(spacing: 0) {
+      HStack(spacing: 0) {
+        Circle()
+          .frame(width: 10, height: 10)
+          .foregroundStyle(.red)
+          .padding(.leading, position.x)
+          .padding(.top, position.y)
+        Spacer(minLength: 0)
+      }
+      Spacer(minLength: 0)
+    }
+  }
+}
+
+struct RectangleView: View, Equatable {
+  let color: Color
+  let rect: CGRect
+  
+  var body: some View {
+    VStack(spacing: 0) {
+      HStack(spacing: 0) {
+        Rectangle()
+          .foregroundStyle(color)
+          .padding(.top, rect.minY)
+          .padding(.leading, rect.minX)
+        
+        Spacer(minLength: 0)
+      }
+      Spacer(minLength: 0)
+    }
   }
 }
 
