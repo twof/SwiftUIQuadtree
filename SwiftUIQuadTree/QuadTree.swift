@@ -35,7 +35,7 @@ struct QuadTreeElement: Identifiable, Equatable, Codable {
       }
     }
     
-    print("Value \(element) shifted down to", rectangle)
+//    print("Value \(element) shifted down to", rectangle)
     values.append(element)
   }
   
@@ -61,7 +61,7 @@ struct QuadTreeElement: Identifiable, Equatable, Codable {
     let isSmallerThanMin = rectangle.size.height < minSize.height || rectangle.size.width < minSize.width
     if values.isEmpty || (isSmallerThanMin)  {
       let newElement = QuadTreeElement(id: id, point: val)
-      print("new element", newElement, "inserted into", rectangle)
+//      print("new element", newElement, "inserted into", rectangle)
       values.append(newElement)
       
       return newElement
@@ -93,7 +93,7 @@ struct QuadTreeElement: Identifiable, Equatable, Codable {
       QuadTree(rectangle: $0, minSize: minSize)
     }
     
-    print("rectangle sectioned", rectangle)
+//    print("rectangle sectioned", rectangle)
     
     // Move all values to children
     for index in (0..<children.count) {
@@ -126,9 +126,9 @@ struct QuadTreeElement: Identifiable, Equatable, Codable {
     if !values.isEmpty {
       values.removeAll { 
         let isMatch = $0.id == element.id
-        if isMatch {
-          print("deleting \(element) from \(rectangle)")
-        }
+//        if isMatch {
+//          print("deleting \(element) from \(rectangle)")
+//        }
         return isMatch
       }
     } else {
@@ -142,7 +142,7 @@ struct QuadTreeElement: Identifiable, Equatable, Codable {
     
     if vals.count <= 1 {
       self.values = vals
-      print("shifted up", vals)
+//      print("shifted up", vals)
       self.children = []
     }
   }
@@ -161,7 +161,7 @@ extension QuadTree {
     let xdiff = newLocation.x - element.point.x
     let ydiff = newLocation.y - element.point.y
     let distance = element.point.distance(to: newLocation)
-    let stages = Int(ceil(distance / minSize.width))
+    let stages = Int(ceil(distance / 1))
     
     let xStageDiff = xdiff / CGFloat(stages)
     let yStageDiff = ydiff / CGFloat(stages)
@@ -177,15 +177,15 @@ extension QuadTree {
   }
   
   func animatedMove(lastElement: QuadTreeElement, nextPoint: CGPoint, currentStage: Int, endStage: Int, xStageDiff: CGFloat, yStageDiff: CGFloat) {
-    withAnimation(.linear) {
+    withAnimation(.linear(duration: 0.01)) {
       self.move(element: lastElement, newLocation: nextPoint)
     } completion: { [weak self] in
       guard let self, currentStage < endStage else {
         return
       }
       
-      print()
-      print()
+//      print()
+//      print()
       let last = QuadTreeElement(id: lastElement.id, point: nextPoint)
       let next = CGPoint(x: nextPoint.x + xStageDiff, y: nextPoint.y + yStageDiff)
       
