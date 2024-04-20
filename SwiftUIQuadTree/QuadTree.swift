@@ -1,6 +1,7 @@
 import SwiftUI
+import IdentifiedCollections
 
-struct QuadTreeElement: Identifiable, Equatable, Codable {
+struct QuadTreeElement: Identifiable, Equatable, Codable, Hashable {
   let id: Int
   let point: CGPoint
 }
@@ -9,15 +10,15 @@ struct QuadTree {
   let rectangle: CGRect
   var children: [QuadTree]
   let minSize: CGSize
-  var values: [QuadTreeElement.ID: QuadTreeElement]
+  var values: IdentifiedArrayOf<QuadTreeElement>
   
-  private var currentIndex = 0
+  private static var currentIndex = 0
   
   init(rectangle: CGRect, minSize: CGSize, values: [CGPoint] = []) {
     self.rectangle = rectangle
     self.children = []
     self.minSize = minSize
-    self.values = [:]
+    self.values = []
     
     for value in values {
       _ = self.insert(value)
@@ -36,14 +37,14 @@ struct QuadTree {
     }
     
 //    print("Value \(element) shifted down to", rectangle)
-    values[element.id] = element
+    values.append(element)
   }
   
   mutating func insert(_ val: CGPoint) -> QuadTreeElement? {
-    guard let element = self.insert(val, id: currentIndex) else {
+    guard let element = self.insert(val, id: QuadTree.currentIndex) else {
       return nil
     }
-    currentIndex += 1
+    QuadTree.currentIndex += 1
     return element
   }
   
@@ -51,6 +52,11 @@ struct QuadTree {
     guard rectangle.contains(val) else {
       return nil
     }
+    
+//    print("Before insert", rectangle, allVals.count, allVals)
+//    defer {
+//      print("After insert", rectangle, allVals.count, allVals)
+//    }
     
     // If there are already children, insert value into them
     if !children.isEmpty {
@@ -64,7 +70,7 @@ struct QuadTree {
     if values.isEmpty || (isSmallerThanMin)  {
       let newElement = QuadTreeElement(id: id, point: val)
 //      print("new element", newElement, "inserted into", rectangle)
-      values[newElement.id] = newElement
+      values.append(newElement)
       
       return newElement
     }
@@ -99,21 +105,21 @@ struct QuadTree {
     
     // Move all values to children
     for index in (0..<children.count) {
-      for value in values.values {
+      for value in values {
 //        print("attempting to shift value down", value)
         children[index].insert(element: value)
       }
     }
     
-    self.values = [:]
+    self.values = []
     
     return (0..<children.count).reduce(nil) { partialResult, index in
       partialResult ?? children[index].insert(val, id: id)
     }
   }
   
-  var allVals: [QuadTreeElement] {
-    return values.values + children.flatMap { $0.allVals }
+  var allVals: IdentifiedArrayOf<QuadTreeElement> {
+    return values + children.flatMap { $0.allVals }
   }
   
   var allRects: [CGRect] {
@@ -121,34 +127,38 @@ struct QuadTree {
   }
   
   // Returns the remaining values after deletion
-  mutating func remove(element: QuadTreeElement) -> [QuadTreeElement] {
+  mutating func remove(element: QuadTreeElement) -> (didRemove: Bool, remaining: IdentifiedArrayOf<QuadTreeElement>) {
     guard rectangle.contains(element.point) else {
-      return Array(values.values)
+      return (false, allVals)
     }
     
-    var subTreeValues = [QuadTreeElement]()
+//    print("Before remove", rectangle, allVals.count, allVals)
+//    defer {
+//      print("After remove", rectangle, allVals.count, allVals)
+//    }
     
-    if values[element.id] == nil {
+    var subTreeValues = IdentifiedArrayOf<QuadTreeElement>()
+    var didRemove = false
+    
+    if !values.ids.contains(element.id) {
       for index in (0..<children.count) {
-        subTreeValues += children[index].remove(element: element)
+        let removal = children[index].remove(element: element)
+        subTreeValues += removal.remaining
+        didRemove ||= removal.didRemove
       }
     } else {
-      values.removeValue(forKey: element.id)
-      subTreeValues += Array(values.values)
+      values.remove(id: element.id)
+      subTreeValues += Array(values)
+      didRemove = true
     }
     
-//    // TODO: Inefficient
-//    let vals = self.allVals
-    
     if subTreeValues.count <= 1 {
-      self.values = subTreeValues.reduce(into: [:]) { partialResult, element in
-        partialResult[element.id] = element
-      }
-//      print("shifted up", vals)
+      self.values = subTreeValues
+//      print("shifted up", subTreeValues)
       self.children = []
     }
     
-    return subTreeValues
+    return (didRemove, subTreeValues)
   }
   
   // only delete the element if it needs to move from one square to another
@@ -156,41 +166,57 @@ struct QuadTree {
   // - The item moves within a square. Most moves should be this type.
   // - The item moves from one square where it was the sole element to a square where it is not the sole element which requires sectioning
   // - The item moves from one square where it was not the sole element to any other square, which may require deletion of a subtree
-  mutating func move(element: QuadTreeElement, newLocation: CGPoint) {
-    if simpleMove(element: element, newLocation: newLocation) {
-      print("simple")
-      return
-    }
-    print("complex")
-    
-    // Remove
-    self.remove(element: element)
-    
-    // Insert at new location
-    _ = self.insert(newLocation, id: element.id)
-  }
-  
-  // Returns true if element was moved
-  private mutating func simpleMove(element: QuadTreeElement, newLocation: CGPoint) -> Bool {
-    // If the rect contains the new location
-    guard rectangle.contains(newLocation) else {
+  mutating func move(element: QuadTreeElement, newLocation: CGPoint) -> Bool {
+    guard rectangle.contains(element.point) && rectangle.contains(newLocation) else {
       return false
     }
     
-    // If the current node contains the element we're looking for, move the element within the square
-    if values[element.id] != nil {
-      values[element.id] = QuadTreeElement(id: element.id, point: newLocation)
-      return true
+//    print("Before move", rectangle, allVals.count, allVals)
+//    defer {
+//      print("After move", rectangle, allVals.count, allVals)
+//    }
+    
+    if children.isEmpty {
+      // If we're at a leaf node that contains the element to move
+      if values.ids.contains(element.id)  {
+//        print("moving within node:", element)
+        // Move the element within the node
+        values[id: element.id] = QuadTreeElement(id: element.id, point: newLocation)
+        return true
+      } else {
+        // Element not found
+        return false
+      }
+    } else {
+      // If child contains the element, and a different child contiains the target
+      // then we've found the lowest common parent.
+      var lowestCommonParent = false
+      for index in (0..<children.count) {
+        lowestCommonParent ||= (children[index].rectangle.contains(element.point) ^ children[index].rectangle.contains(newLocation))
+      }
+      
+      if lowestCommonParent {
+        // Remove
+        let (didRemove, _) = self.remove(element: element)
+        
+        // Insert at new location
+        _ = self.insert(newLocation, id: element.id)
+        
+        return didRemove
+      }
+      
+      // Lowest common parent not yet found, so keep traversing lower into the tree
+      var didMove = false
+      
+      for index in (0..<children.count)  {
+        didMove ||= children[index].move(element: element, newLocation: newLocation)
+      }
+      
+      return didMove
     }
-    
-    var didMove = false
-    
-    for index in (0..<children.count)  {
-      didMove = didMove || children[index].simpleMove(element: element, newLocation: newLocation)
-    }
-    
-    return didMove
   }
+  
+  // Traverse down until the new location and the elemement are not in the same rectangle
 }
 
 extension QuadTree: Shape {
@@ -203,10 +229,9 @@ extension QuadTree: Shape {
       queue.insert(contentsOf: current.children, at: 0)
       
       path.addRect(current.rectangle)
-      for value in current.values.values {
+      for value in current.values {
         path.addEllipse(in: .centeredOn(value.point, size: 10))
       }
-      
     }
     
     return path

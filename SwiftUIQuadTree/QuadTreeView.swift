@@ -1,4 +1,6 @@
 import SwiftUI
+import Combine
+import IdentifiedCollections
 
 struct RegionsView: View, Animatable {
   @State var tree: QuadTree
@@ -9,7 +11,8 @@ struct RegionsView: View, Animatable {
 }
 
 @Observable
-class QuadTreeViewModel {
+class QuadTreeViewModel: ObservableObject {
+  
   var tree: QuadTree
   @ObservationIgnored private var actions: [Action] = []
   @ObservationIgnored private var isProcessing = false
@@ -19,7 +22,7 @@ class QuadTreeViewModel {
     tree.rectangle
   }
   
-  var allVals: [QuadTreeElement] {
+  var allVals: IdentifiedArrayOf<QuadTreeElement> {
     tree.allVals
   }
   
@@ -44,7 +47,7 @@ class QuadTreeViewModel {
     let xdiff = newLocation.x - element.point.x
     let ydiff = newLocation.y - element.point.y
     let distance = element.point.distance(to: newLocation)
-    let stages = Int(ceil(distance / tree.minSize.width))
+    let stages = Int(ceil(distance / 1))
     
     let xStageDiff = xdiff / CGFloat(stages)
     let yStageDiff = ydiff / CGFloat(stages)
@@ -82,10 +85,7 @@ class QuadTreeViewModel {
     let actionsToProcess: [Action] = self.actions.compactMap {
       switch $0 {
       case let .queue(array):
-        guard let first = array.first else {
-          return nil
-        }
-        return first
+        return array.first
       case .move:
         return $0
       }
@@ -93,27 +93,71 @@ class QuadTreeViewModel {
     
     self.actions = []
     
-    withAnimation(.linear(duration: 0.3)) {
+//    var transaction = Transaction(animation: nil)
+//    transaction.comp
+//    
+//    withTransaction(transaction, <#T##body: () throws -> Result##() throws -> Result#>)
+    
+    withAnimation(nil) { [weak self] in
+      guard let self else { return }
+//      self.objectWillChange.send()
+      
       for action in actionsToProcess {
 //        print("Processing:", action)
         switch action {
         case let .move(element, newLocation):
-          tree.move(element: element, newLocation: newLocation)
+          _ = tree.move(element: element, newLocation: newLocation)
         case .queue:
           fatalError()
         }
       }
-    } completion: { [weak self] in
-      guard let self else { return }
+      
       actions.append(contentsOf: remainingQueues)
+      
+      //      print()
+      //      print()
+      //      print()
+      
+      //      let allVals = tree.allVals
+      //      let count = allVals.count
+      
+      //      print(allVals)
+      //      print(count)
       
       if actions.isEmpty {
         isProcessing = false
       } else {
-        internalProcessActions()
+        Task { [weak self] in
+          guard let self else { return }
+          try await Task.sleep(for: .milliseconds(10))
+          internalProcessActions()
+        }
+//        Thread.sleep(forTimeInterval: 0.1)
+//        internalProcessActions()
       }
-    }
-
+      
+    } 
+//  completion: { [weak self] in
+//      guard let self else { return }
+//      actions.append(contentsOf: remainingQueues)
+//      
+////      print()
+////      print()
+////      print()
+//      
+////      let allVals = tree.allVals
+////      let count = allVals.count
+//      
+////      print(allVals)
+////      print(count)
+//      
+//      if actions.isEmpty {
+//        isProcessing = false
+//      } else {
+//        Thread.sleep(forTimeInterval: 0.1)
+//        internalProcessActions()
+//      }
+//    }
   }
 }
 
@@ -125,10 +169,11 @@ extension QuadTreeViewModel {
 }
 
 struct QuadTreeView: View {
-  var vm: QuadTreeViewModel
+  @State var vm: QuadTreeViewModel
   
   var body: some View {
     ZStack {
+//      RegionsView(tree: vm.tree)
       // Draw children
       GridView(rects: vm.allRects, colorGenerator: vm.getColor)
       
@@ -140,7 +185,7 @@ struct QuadTreeView: View {
 }
 
 struct PositionsView: View, Equatable {
-  let elements: [QuadTreeElement]
+  let elements: IdentifiedArrayOf<QuadTreeElement>
   
   var body: some View {
     ForEach(elements) { element in
@@ -175,8 +220,8 @@ struct PositionView: View, Equatable {
         Circle()
           .frame(width: 10, height: 10)
           .foregroundStyle(.red)
-          .padding(.leading, position.x)
-          .padding(.top, position.y)
+          .padding(.leading, position.x - 5)
+          .padding(.top, position.y - 5)
         Spacer(minLength: 0)
       }
       Spacer(minLength: 0)

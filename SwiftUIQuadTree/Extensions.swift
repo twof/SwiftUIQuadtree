@@ -58,3 +58,15 @@ extension CGSize {
     CGSize(width: lhs.width / rhs, height: lhs.height / rhs)
   }
 }
+
+// XOR operator
+extension Bool {
+  static func ^ (left: Bool, right: Bool) -> Bool {
+    return left != right
+  }
+}
+
+infix operator ||=
+func ||=(lhs: inout Bool, rhs: Bool) { lhs = (lhs || rhs) }
+
+
