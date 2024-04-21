@@ -10,6 +10,11 @@ struct RegionsView: View, Animatable {
   }
 }
 
+struct MoveAction {
+  let element: QuadTreeElement,
+      newLocation: CGPoint
+}
+
 @Observable
 class QuadTreeViewModel: ObservableObject {
   
@@ -60,6 +65,15 @@ class QuadTreeViewModel: ObservableObject {
       partialResult.last = QuadTreeElement(id: lastElement.id, point: nextLocation)
     }).list[...]))
     
+//    let moveActions = (0..<stages).reduce(into: (last: element, list: [MoveAction]()), { partialResult, stage in
+//      let (lastElement, _) = partialResult
+//      let nextLocation = CGPoint(x: lastElement.point.x + xStageDiff, y: lastElement.point.y + yStageDiff)
+//      partialResult.list.append(MoveAction(element: partialResult.last, newLocation: nextLocation))
+//      
+//      partialResult.last = QuadTreeElement(id: lastElement.id, point: nextLocation)
+//    }).list[...]
+//    
+//    internalProcessActions(moveActions)
     processActions()
   }
   
@@ -93,71 +107,38 @@ class QuadTreeViewModel: ObservableObject {
     
     self.actions = []
     
-//    var transaction = Transaction(animation: nil)
-//    transaction.comp
-//    
-//    withTransaction(transaction, <#T##body: () throws -> Result##() throws -> Result#>)
+      
+    for action in actionsToProcess {
+      switch action {
+      case let .move(element, newLocation):
+        _ = tree.move(element: element, newLocation: newLocation)
+      case .queue:
+        fatalError()
+      }
+    }
     
-    withAnimation(nil) { [weak self] in
-      guard let self else { return }
-//      self.objectWillChange.send()
-      
-      for action in actionsToProcess {
-//        print("Processing:", action)
-        switch action {
-        case let .move(element, newLocation):
-          _ = tree.move(element: element, newLocation: newLocation)
-        case .queue:
-          fatalError()
-        }
+    actions.append(contentsOf: remainingQueues)
+    
+    if actions.isEmpty {
+      isProcessing = false
+    } else {
+      Task { [weak self] in
+        guard let self else { return }
+        try await Task.sleep(for: .milliseconds(10))
+        internalProcessActions()
       }
-      
-      actions.append(contentsOf: remainingQueues)
-      
-      //      print()
-      //      print()
-      //      print()
-      
-      //      let allVals = tree.allVals
-      //      let count = allVals.count
-      
-      //      print(allVals)
-      //      print(count)
-      
-      if actions.isEmpty {
-        isProcessing = false
-      } else {
-        Task { [weak self] in
-          guard let self else { return }
-          try await Task.sleep(for: .milliseconds(10))
-          internalProcessActions()
-        }
-//        Thread.sleep(forTimeInterval: 0.1)
-//        internalProcessActions()
+    }
+  }
+  
+  private func internalProcessActions(_ actions: ArraySlice<MoveAction>) {
+    Task { [weak self] in
+      guard let self, !actions.isEmpty else { return }
+      _ = tree.move(element: actions[actions.startIndex].element, newLocation: actions[actions.startIndex].newLocation)
+      try await Task.sleep(for: .milliseconds(10))
+      if actions.count > 1 {
+        internalProcessActions(actions[actions.startIndex...])
       }
-      
-    } 
-//  completion: { [weak self] in
-//      guard let self else { return }
-//      actions.append(contentsOf: remainingQueues)
-//      
-////      print()
-////      print()
-////      print()
-//      
-////      let allVals = tree.allVals
-////      let count = allVals.count
-//      
-////      print(allVals)
-////      print(count)
-//      
-//      if actions.isEmpty {
-//        isProcessing = false
-//      } else {
-//        Thread.sleep(forTimeInterval: 0.1)
-//        internalProcessActions()
-//      }
-//    }
+    }
   }
 }
 

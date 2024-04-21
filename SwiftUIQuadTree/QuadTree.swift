@@ -167,6 +167,7 @@ struct QuadTree {
   // - The item moves from one square where it was the sole element to a square where it is not the sole element which requires sectioning
   // - The item moves from one square where it was not the sole element to any other square, which may require deletion of a subtree
   mutating func move(element: QuadTreeElement, newLocation: CGPoint) -> Bool {
+    // Traverse down until the new location and the elemement are not in the same rectangle
     guard rectangle.contains(element.point) && rectangle.contains(newLocation) else {
       return false
     }
@@ -215,8 +216,6 @@ struct QuadTree {
       return didMove
     }
   }
-  
-  // Traverse down until the new location and the elemement are not in the same rectangle
 }
 
 extension QuadTree: Shape {
